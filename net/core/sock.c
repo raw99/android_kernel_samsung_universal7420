@@ -1366,7 +1366,7 @@ struct sock *sk_prot_alloc(struct proto *prot, gfp_t priority,
 		sk_tx_queue_clear(sk);
 
 // ------------- START of KNOX_VPN ------------------//
-        sk->knox_uid = current->cred->uid;
+        sk->knox_uid = from_kuid(&init_user_ns, current->cred->uid);
         sk->knox_pid = current->tgid;
 // ------------- END of KNOX_VPN -------------------//
 	}
@@ -1453,7 +1453,7 @@ struct sock *sk_alloc(struct net *net, int family, gfp_t priority,
 		sock_update_classid(sk);
 		sock_update_netprioidx(sk);
 		/* START_OF_KNOX_VPN */
-		sk->knox_uid = current->cred->uid;
+		sk->knox_uid = from_kuid(&init_user_ns, current->cred->uid);
 		sk->knox_pid = current->tgid;
 		open_timespec = current_kernel_time();
 		sk->open_time = open_timespec.tv_sec;

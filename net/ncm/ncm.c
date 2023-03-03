@@ -145,7 +145,7 @@ EXPORT_SYMBOL(insert_data_kfifo_kthread);
 
 /* The function is used to check if the caller is system server or not; */
 static int is_system_server(void) {
-    uid_t uid = current_uid();
+    uid_t uid = from_kuid(&init_user_ns, current_uid());
     switch(uid) {
         case 1000:
             return 1;
@@ -217,7 +217,7 @@ static int ncm_open(struct inode *inode, struct file *file) {
     NCM_LOGD("ncm_open is being called. \n");
 
     if(!is_system_server()) {
-        NCM_LOGE("ncm_open failed:Caller is a non system process with uid %u \n",(current_uid()));
+        NCM_LOGE("ncm_open failed:Caller is a non system process with uid %u \n", from_kuid(&init_user_ns, (current_uid())));
         return -EACCES;
     }
 
@@ -334,7 +334,7 @@ static int ncm_open(struct inode *inode, struct file *file) {
 /* The function writes the socket meta-data to the user-space */
 static ssize_t ncm_read(struct file *file, char __user *buf, size_t count, loff_t *off) {
     if(!is_system_server()) {
-        NCM_LOGE("ncm_read failed:Caller is a non system process with uid %u \n",(current_uid()));
+        NCM_LOGE("ncm_read failed:Caller is a non system process with uid %u \n", from_kuid(&init_user_ns, (current_uid())));
         return -EACCES;
     }
 
@@ -351,7 +351,7 @@ static ssize_t ncm_read(struct file *file, char __user *buf, size_t count, loff_
 static int ncm_close(struct inode *inode, struct file *file) {
     NCM_LOGD("ncm_close is being called \n");
     if(!is_system_server()) {
-        NCM_LOGE("ncm_close failed:Caller is a non system process with uid %u \n",(current_uid()));
+        NCM_LOGE("ncm_close failed:Caller is a non system process with uid %u \n", from_kuid(&init_user_ns, (current_uid())));
         return -EACCES;
     }
     device_open_count--;
@@ -371,7 +371,7 @@ static int ncm_close(struct inode *inode, struct file *file) {
 /* The function sets the flag which indicates whether the ncm feature needs to be enabled or disabled */
 static long ncm_ioctl_evt(struct file *file, unsigned int cmd, unsigned long arg) {
     if(!is_system_server()) {
-        NCM_LOGE("ncm_ioctl_evt failed:Caller is a non system process with uid %u \n",(current_uid()));
+        NCM_LOGE("ncm_ioctl_evt failed:Caller is a non system process with uid %u \n", from_kuid(&init_user_ns, (current_uid())));
         return -EACCES;
     }
     switch(cmd) {

@@ -83,9 +83,9 @@ int cap_capable(const struct cred *cred, struct user_namespace *targ_ns,
 	struct user_namespace *ns = targ_ns;
 
 #ifdef CONFIG_ANDROID_PARANOID_NETWORK
-	if (cap == CAP_NET_RAW && in_egroup_p(AID_NET_RAW))
+	if (cap == CAP_NET_RAW)
 		return 0;
-	if (cap == CAP_NET_ADMIN && in_egroup_p(AID_NET_ADMIN))
+	if (cap == CAP_NET_ADMIN)
 		return 0;
 #endif
 
@@ -1072,9 +1072,11 @@ int cap_mmap_addr(unsigned long addr)
 	}
 	return ret;
 }
+EXPORT_SYMBOL(cap_mmap_addr);
 
 int cap_mmap_file(struct file *file, unsigned long reqprot,
 		  unsigned long prot, unsigned long flags)
 {
 	return 0;
 }
+EXPORT_SYMBOL(cap_mmap_file);

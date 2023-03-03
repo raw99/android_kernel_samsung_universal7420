@@ -135,7 +135,7 @@
 
 static inline int current_has_network(void)
 {
-	return in_egroup_p(AID_INET) || capable(CAP_NET_RAW);
+	return capable(CAP_NET_RAW);
 }
 #else
 static inline int current_has_network(void)
@@ -475,7 +475,7 @@ static void knox_collect_metadata(struct socket *sock) {
                     parent_task = pid_task(parent_pid_struct,PIDTYPE_PID);
                     if(parent_task != NULL) {
                         memcpy(ksm->parent_process_name,parent_task->comm,sizeof(ksm->parent_process_name));
-                        ksm->knox_puid = parent_task->cred->uid;
+                        ksm->knox_puid = from_kuid(&init_user_ns, parent_task->cred->uid);
                     }
                 }
             }

@@ -653,14 +653,13 @@ static inline int ext4_has_free_inodes(struct ext4_sb_info *sbi)
 		return 1;
 
 	if (percpu_counter_read_positive(&sbi->s_freeinodes_counter) >
-			sbi->s_r_inodes_count &&
-			in_group_p(AID_USE_SEC_RESERVED))
+			sbi->s_r_inodes_count)
 		return 1;
 
 	/* Hm, nope.  Are (enough) root reserved inodes available? */
 	if (uid_eq(sbi->s_resuid, current_fsuid()) ||
 	    (!gid_eq(sbi->s_resgid, GLOBAL_ROOT_GID) && in_group_p(sbi->s_resgid)) ||
-	    capable(CAP_SYS_RESOURCE) || in_group_p(AID_USE_ROOT_RESERVED))
+	    capable(CAP_SYS_RESOURCE))
 		return 1;
 	return 0;
 }
