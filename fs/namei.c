@@ -2262,22 +2262,17 @@ user_path_parent(int dfd, const char __user *path, struct nameidata *nd,
 	return s;
 }
 
-/*
- * It's inline, so penalty for filesystems that don't use sticky bit is
- * minimal.
- */
-static inline int check_sticky(struct inode *dir, struct inode *inode)
+int __check_sticky(struct inode *dir, struct inode *inode)
 {
 	kuid_t fsuid = current_fsuid();
 
-	if (!(dir->i_mode & S_ISVTX))
-		return 0;
 	if (uid_eq(inode->i_uid, fsuid))
 		return 0;
 	if (uid_eq(dir->i_uid, fsuid))
 		return 0;
 	return !capable_wrt_inode_uidgid(inode, CAP_FOWNER);
 }
+EXPORT_SYMBOL(__check_sticky);
 
 /*
  *	Check whether we can remove a link victim from directory dir, check
@@ -2346,6 +2341,15 @@ static inline int may_create(struct vfsmount *mnt, struct inode *dir, struct den
 	if (IS_DEADDIR(dir))
 		return -ENOENT;
 	return inode_permission2(mnt, dir, MAY_WRITE | MAY_EXEC);
+}
+static inline int may_create2(struct inode *dir, struct dentry *child)
+{
+	audit_inode_child(dir, child, AUDIT_TYPE_CHILD_CREATE);
+	if (child->d_inode)
+		return -EEXIST;
+	if (IS_DEADDIR(dir))
+		return -ENOENT;
+	return inode_permission(dir, MAY_WRITE | MAY_EXEC);
 }
 
 /*
@@ -4111,6 +4115,20 @@ SYSCALL_DEFINE2(rename, const char __user *, oldname, const char __user *, newna
 {
 	return sys_renameat(AT_FDCWD, oldname, AT_FDCWD, newname);
 }
+
+int vfs_whiteout(struct inode *dir, struct dentry *dentry)
+{
+	int error = may_create2(dir, dentry);
+	if (error)
+		return error;
+
+	if (!dir->i_op->mknod)
+		return -EPERM;
+
+	return dir->i_op->mknod(dir, dentry,
+				S_IFCHR | WHITEOUT_MODE, WHITEOUT_DEV);
+}
+EXPORT_SYMBOL(vfs_whiteout);
 
 int vfs_readlink(struct dentry *dentry, char __user *buffer, int buflen, const char *link)
 {
